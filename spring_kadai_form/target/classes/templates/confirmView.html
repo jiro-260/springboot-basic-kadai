@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>確認画面</title>
+</head>
+<body>
+<h1>入力内容の確認</h1>
+<table border="1">
+    <tr>
+        <th>項目</th>
+        <th>入力内容</th>
+    </tr>
+    <tr>
+        <td>お名前</td>
+        <td th:text="${contactForm.name}"></td>
+    </tr>
+    <tr>
+        <td>メールアドレス</td>
+        <td th:text="${contactForm.email}"></td>
+    </tr>
+    <tr>
+        <td>お問い合わせ内容</td>
+        <td th:text="${contactForm.message}"></td>
+    </tr>
+</table>
+<!-- 送信ボタンや修正ボタンも追加可能 -->
+</body>
+</html>
