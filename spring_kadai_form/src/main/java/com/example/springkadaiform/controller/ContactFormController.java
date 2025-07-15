@@ -9,6 +9,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.springkadaiform.form.ContactForm;
 
@@ -23,17 +24,21 @@ public class ContactFormController {
 
     @GetMapping("/form")
     public String showForm(@ModelAttribute("contactForm") ContactForm contactForm) {
-        return "contactFormView"; // 元のフォーム表示
+        // 既にFlashスコープから`contactForm`とエラー情報が自動的に取得されている
+        return "contactFormView"; 
     }
-
+    
     @PostMapping("/form")
     public String submitForm(@Valid @ModelAttribute("contactForm") ContactForm contactForm,
                              BindingResult bindingResult,
-                             Model model) {
+                             RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            return "contactFormView"; // 入力エラーでフォームに戻る
+            // エラーと入力値をフラッシュ属性として渡す
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.contactForm", bindingResult);
+            redirectAttributes.addFlashAttribute("contactForm", contactForm);
+            return "redirect:/form";  // リダイレクト
         }
-        // バリデーションOK → セッションに保存して確認画面にリダイレクト
+        // OKの場合の処理
         session.setAttribute("contactFormData", contactForm);
         return "redirect:/confirm";
     }
