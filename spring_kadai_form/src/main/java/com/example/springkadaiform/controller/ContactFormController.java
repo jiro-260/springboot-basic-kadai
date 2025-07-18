@@ -1,11 +1,12 @@
 package com.example.springkadaiform.controller;
 
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 
+import org.springframework.core.Conventions;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,26 +25,42 @@ public class ContactFormController {
     }
 
     @GetMapping("/form")
-    public String showForm(@ModelAttribute ContactForm contactForm, Model model) {
-        // この時点でフラッシュスコープから自動的に取得されているはず
+    public String form(Model model) {
+
+        // すでにインスタンスが存在する場合は行わない
+        if (!model.containsAttribute("contactForm")) {
+            // ビューにフォームクラスのインスタンスを渡す
+            model.addAttribute("contactForm", new ContactForm());
+        }
+
+        // お問い合わせフォームを表示
         return "contactFormView";
     }
-    
-    @PostMapping("/form")
-    public String submitForm(@Valid @ModelAttribute(CONTACT_FORM) ContactForm contactForm,
-                             BindingResult bindingResult,
-                             RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            // フラッシュにエラーと値を保存
-            redirectAttributes.addFlashAttribute(CONTACT_FORM, contactForm);
-            // BindingResultも必ず指定
-            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.contactForm", bindingResult);
+
+@PostMapping("/confirm")
+    public String contact(Model model , RedirectAttributes redirectAttributes,
+            @Validated ContactForm form, BindingResult result) { // 引数にModel を追加
+
+        // バリデーションエラーがあったら終了
+        if (result.hasErrors()) {
+
+            // フォームクラスをビューに受け渡す
+            redirectAttributes.addFlashAttribute("contactForm", form);
+
+            // バリデーション結果をビューに受け渡す　// 15章を参照のことhttps://terakoya.sejuku.net/programs/176/chapters/2435
+            redirectAttributes.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX
+                    + Conventions.getVariableName(form), result);
+
+            // formにリダイレクト
             return "redirect:/form";
         }
-        // 正常処理
-        session.setAttribute("contactFormData", contactForm);
-        return "redirect:/confirm";
+
+  // 確認画面に情報を受け渡すために必要　12章をもう一度読んでください　https://terakoya.sejuku.net/programs/176/chapters/2432
+        model.addAttribute("contactForm", form);
+        // confirmにリダイレクトして確認画面
+        return "confirmView";
     }
+
 
     @GetMapping("/confirm")
     public String showConfirm(@ModelAttribute(CONTACT_FORM) ContactForm contactForm, Model model) {
